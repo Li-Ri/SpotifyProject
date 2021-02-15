@@ -1,6 +1,9 @@
+import json
+import requests
 import spotipy
+import spotipy.util as util
+from bs4 import BeautifulSoup as bs
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
-
 
 
 class Favourites:
@@ -59,14 +62,49 @@ class Favourites:
 
         print(str(len(tracks)) + ' Songs added To playlist!!')
 
+    def read_recently_played(self, scope='user-read-recently-played'):
+
+        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+
+        items = self.sp.current_user_recently_played(limit=50)['items']
+
+        track_uris = []
+        for track in range(len(items)):
+            track_uris.append(items[track]['track']['id'])
+
+        return track_uris
+
+class AudioFeatures(Favourites):
+
+    def analyze_audio(self,token=None,scope='user-top-read'):
+
+        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+        tracks = self.read_recently_played()
+        urls = ["https://api.spotify.com/v1/audio-features/"+ track for track in tracks]
+
+        audio_features = []
+    
+        if token:
+            for url in urls:
+                with requests.session() as sesh:
+                    header = {'Authorization': 'Bearer {}'.format(token)}
+                    response= sesh.get(url, headers=header)
+                    feature = str(bs(response.content, 'html.parser'))
+                    audio_features.append(json.loads(feature))
+
+        else:
+            print('invalid token')
+        
+        return audio_features
+        
+
 
 
 
 
 if __name__ == '__main__':
 
-    play = Favourites()
-
-    tracks = play.get_top_songs(top_artists=play.current_top_artists(40))
-
-    play.add_top_songs_to_playlist(tracks=tracks)
+    play = AudioFeatures()
+    scope='user-top-read'
+    token = util.prompt_for_user_token(scope=scope, client_id='',client_secret='')
+    print(play.analyze_audio(token))
