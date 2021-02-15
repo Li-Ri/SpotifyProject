@@ -6,12 +6,26 @@ from bs4 import BeautifulSoup as bs
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 
 
+
 class Favourites:
 
     def __init__(self):
 
         self.playlist = 'favourite'
 
+    def current_playlists(self, scope='playlist-read-collaborative'):
+
+        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
+        playlists = {}
+
+        cur_play = self.sp.current_user_playlists(limit=50)
+
+        for play in range(len(cur_play)):
+
+            playlists[cur_play['items'][play]['name']] = cur_play['items'][play]['id']
+
+
+        return playlists
     @staticmethod
     def playlist_create(name, scope='playlist-modify'):
 
@@ -52,20 +66,21 @@ class Favourites:
                 
 
         return tracks
-    def add_top_songs_to_playlist(self, scope='playlist-modify', tracks=[]):
+    def add_top_songs_to_playlist(self, name, scope='playlist-modify', tracks=[]):
 
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
-        
+        playlists = self.current_playlists()
+
         for track in tracks:
 
-            self.sp.playlist_add_items('58XE4tsIXhhged6xnpT7SQ',[track])
+            self.sp.playlist_add_items(playlists[name],[track])
 
         print(str(len(tracks)) + ' Songs added To playlist!!')
 
     def read_recently_played(self, scope='user-read-recently-played'):
 
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
-
+        
         items = self.sp.current_user_recently_played(limit=50)['items']
 
         track_uris = []
@@ -96,6 +111,7 @@ class AudioFeatures(Favourites):
             print('invalid token')
         
         return audio_features
+        
         
 
 
