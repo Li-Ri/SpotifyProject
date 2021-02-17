@@ -1,17 +1,15 @@
 import json
+import time
+import numpy as np
 import requests
 import spotipy
 import spotipy.util as util
 from bs4 import BeautifulSoup as bs
+import matplotlib.pyplot as plt
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 
 
-
 class Favourites:
-
-    def __init__(self):
-
-        self.playlist = 'favourite'
 
     def current_playlists(self, scope='playlist-read-collaborative'):
 
@@ -23,7 +21,6 @@ class Favourites:
         for play in range(len(cur_play)):
 
             playlists[cur_play['items'][play]['name']] = cur_play['items'][play]['id']
-
 
         return playlists
     @staticmethod
@@ -111,6 +108,17 @@ class AudioFeatures(Favourites):
             print('invalid token')
         
         return audio_features
+
+    def pull_audio_dataset(self, name, token=None):
+
+        data_all = self.analyze_audio(token)
+
+        pulled_data = [] 
+
+        for data in range(len(data_all)):
+            pulled_data.append(data_all[data][name])
+
+        return pulled_data
         
         
 
