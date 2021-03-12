@@ -32,7 +32,7 @@ class Favourites:
 
             if sp.current_user_playlists()['items'][i]['name'] == name:
 
-                print('Favourite playlist alrady exists try adding updating songs')
+                print(f'{name} playlist alrady exists try adding updating songs')
                 break
             else:
 
